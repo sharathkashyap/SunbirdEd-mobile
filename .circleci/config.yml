@@ -54,4 +54,4 @@ jobs:
           name: Create Android Build
           command: |
             ionic cordova platforms add android@7.0.0
-            ionic cordova build android
+            ionic cordova build android --prod --release --buildConfig ./buildConfig/build.json
