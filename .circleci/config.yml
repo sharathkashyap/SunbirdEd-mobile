@@ -48,4 +48,4 @@ jobs:
           rm -rf platforms
       - run: |
           ionic cordova platforms add android@7.0.0
-          ionic cordova build android --prod --release --buildConfig ./buildConfig/build.json
+          ionic cordova build android
