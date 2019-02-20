@@ -3,6 +3,7 @@ jobs:
   build:
     docker:
       - image: circleci/node
+      - image: beevelop/ionic
     steps:
       - checkout
       - run: |
