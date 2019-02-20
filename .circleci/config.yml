@@ -22,30 +22,30 @@ jobs:
           done < "$file"
           echo $CORDOVA_COUNTER
           which git
-      - run: |
-          git clone -b master https://github.com/project-sunbird/genie-sdk-wrapper.git
-          cd genie-sdk-wrapper
-          rm package-lock.json
-          npm install
-          npm run build
-          rm $(pwd)/dist/dependencies.json
-          npm pack $(pwd)/dist
-          cd ..
-          npm install
-          npm install $(pwd)/genie-sdk-wrapper/*.tgz --save
-          rm -rf genie-sdk-wrapper
-      - run: |
-          sudo npm install -g ionic cordova
+      #- run: |
+          #git clone -b master https://github.com/project-sunbird/genie-sdk-wrapper.git
+          #cd genie-sdk-wrapper
+      #     rm package-lock.json
+      #     npm install
+      #     npm run build
+      #     rm $(pwd)/dist/dependencies.json
+      #     npm pack $(pwd)/dist
+      #     cd ..
+      #     npm install
+      #     npm install $(pwd)/genie-sdk-wrapper/*.tgz --save
+      #     rm -rf genie-sdk-wrapper
+      # - run: |
+      #     sudo npm install -g ionic cordova
     
-          for cordova_plugin in "${CORDOVA[@]}"
-          do
-            ionic cordova plugin add $cordova_plugin
-          done
-          for cordova_plugin in "${SUNBIRD_CORDOVA[@]}"
-          do
-            ionic cordova plugin add $cordova_plugin#$buildBranch
-          done
-          rm -rf platforms
-      - run: |
-          ionic cordova platforms add android@7.0.0
-          ionic cordova build android
+      #     for cordova_plugin in "${CORDOVA[@]}"
+      #     do
+      #       ionic cordova plugin add $cordova_plugin
+      #     done
+      #     for cordova_plugin in "${SUNBIRD_CORDOVA[@]}"
+      #     do
+      #       ionic cordova plugin add $cordova_plugin#$buildBranch
+      #     done
+      #     rm -rf platforms
+      # - run: |
+      #     ionic cordova platforms add android@7.0.0
+      #     ionic cordova build android
