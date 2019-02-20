@@ -3,7 +3,6 @@ jobs:
   build:
     docker:
       - image: circleci/node
-      - image: beevelop/ionic
     steps:
       - checkout
       - run: |
@@ -23,7 +22,7 @@ jobs:
           done < "$file"
           echo $CORDOVA_COUNTER
           which git
-          npm install -g ionic cordova
+          sudo npm install -g ionic cordova
           #git clone -b master https://github.com/project-sunbird/genie-sdk-wrapper.git
           #cd genie-sdk-wrapper
           #rm package-lock.json
