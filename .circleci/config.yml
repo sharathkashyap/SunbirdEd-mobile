@@ -17,5 +17,4 @@ jobs:
           npm install
           npm install $(pwd)/genie-sdk-wrapper/*.tgz --save
           rm -rf genie-sdk-wrapper
-      - run: npm run test:ci
 
