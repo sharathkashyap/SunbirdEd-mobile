@@ -6,6 +6,18 @@ jobs:
     steps:
       - checkout
       - run: |
+          git clone -b master https://github.com/project-sunbird/genie-sdk-wrapper.git
+          cd genie-sdk-wrapper
+          rm package-lock.json
+          npm install
+          npm run build
+          rm $(pwd)/dist/dependencies.json
+          npm pack $(pwd)/dist
+          cd ..
+          npm install
+          npm install $(pwd)/genie-sdk-wrapper/*.tgz --save
+          rm -rf genie-sdk-wrapper
+      - run: |
           CORDOVA_COUNTER=0
           SUNBIRD_CORDOVA_COUNTER=0
           file="./build_config"
@@ -23,17 +35,7 @@ jobs:
           echo $CORDOVA_COUNTER
           which git
           sudo npm install -g ionic cordova
-          #git clone -b master https://github.com/project-sunbird/genie-sdk-wrapper.git
-          #cd genie-sdk-wrapper
-          #rm package-lock.json
-          #npm install
-          #npm run build
-          #rm $(pwd)/dist/dependencies.json
-          #npm pack $(pwd)/dist
-          #cd ..
-          #npm install
-          #npm install $(pwd)/genie-sdk-wrapper/*.tgz --save
-          #rm -rf genie-sdk-wrapper
+    
           for cordova_plugin in "${CORDOVA[@]}"
           do
             ionic cordova plugin add $cordova_plugin
