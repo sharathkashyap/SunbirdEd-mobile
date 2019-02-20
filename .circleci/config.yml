@@ -1,7 +1,4 @@
 version: 2.1
-dependencies:
-    pre:
-    - npm install -g ionic cordova
 jobs:
   build:
     docker:
@@ -24,6 +21,8 @@ jobs:
             esac
           done < "$file"
           echo $CORDOVA_COUNTER
+          which git
+          npm install -g ionic cordova
           #git clone -b master https://github.com/project-sunbird/genie-sdk-wrapper.git
           #cd genie-sdk-wrapper
           #rm package-lock.json
