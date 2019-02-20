@@ -5,9 +5,8 @@ jobs:
       - image: circleci/node
     steps:
       - checkout
-      - run: npm install
       - run: |
-          git clone -b $buildBranch https://github.com/project-sunbird/genie-sdk-wrapper.git
+          git clone -b master https://github.com/project-sunbird/genie-sdk-wrapper.git
           cd genie-sdk-wrapper
           rm package-lock.json
           npm install
