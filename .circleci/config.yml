@@ -7,8 +7,7 @@ jobs:
       - checkout
       - run: npm install
       - run:
-        name: Installing genie-sdk-wrapper
-        command: |
+          command: |
           git clone -b $buildBranch https://github.com/project-sunbird/genie-sdk-wrapper.git
           cd genie-sdk-wrapper
           rm package-lock.json
