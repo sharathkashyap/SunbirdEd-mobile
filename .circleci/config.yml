@@ -22,7 +22,7 @@ jobs:
           done < "$file"
           echo $CORDOVA_COUNTER
           which git
-        - run: |
+      - run: |
           git clone -b master https://github.com/project-sunbird/genie-sdk-wrapper.git
           cd genie-sdk-wrapper
           rm package-lock.json
@@ -34,7 +34,7 @@ jobs:
           npm install
           npm install $(pwd)/genie-sdk-wrapper/*.tgz --save
           rm -rf genie-sdk-wrapper
-        - run: |
+      - run: |
           sudo npm install -g ionic cordova
     
           for cordova_plugin in "${CORDOVA[@]}"
@@ -45,7 +45,7 @@ jobs:
           do
             ionic cordova plugin add $cordova_plugin#$buildBranch
           done
-        - run: |
           rm -rf platforms
+      - run: |
           ionic cordova platforms add android@7.0.0
           ionic cordova build android --prod --release --buildConfig ./buildConfig/build.json
