@@ -5,7 +5,9 @@ jobs:
       - image: circleci/node
     steps:
       - checkout
-      - run: |
+      - run:
+          name: Finalizing Cordova Counter
+          command: |
           CORDOVA_COUNTER=0
           SUNBIRD_CORDOVA_COUNTER=0
           file="./build_config"
