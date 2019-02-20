@@ -1,8 +1,8 @@
 version: 2.1
-jobs:
-  dependencies:
+dependencies:
     pre:
     - npm install -g ionic cordova
+jobs:
   build:
     docker:
       - image: circleci/node
