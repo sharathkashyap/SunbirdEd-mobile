@@ -300,7 +300,6 @@ export class CoursesPage implements OnInit {
       });
     });
     this.events.subscribe(EventTopics.REFRESH_ENROLL_COURSE_LIST, () => {
-      this.enrolledCourses = this.appGlobalService.getEnrolledCourseList();
       this.getEnrolledCourses(false, true);
     });
   }
@@ -365,7 +364,7 @@ export class CoursesPage implements OnInit {
           }
         });
 
-        if (filterApplied) {
+        if (filterApplied && !hardRefresh) {
           criteria.mode = 'hard';
         }
         criteria.filters = this.appliedFilter;
@@ -763,7 +762,7 @@ export class CoursesPage implements OnInit {
    * and also shows the bottom navigation bar
    */
   removeOverlayAndShowError(): any {
-    this.commonUtilService.showToast('ERROR_CONTENT_NOT_AVAILABLE');
+    this.commonUtilService.showToast('COURSE_NOT_AVAILABLE');
     this.tabBarElement.style.display = 'flex';
     this.showOverlay = false;
   }

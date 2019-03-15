@@ -40,7 +40,8 @@ import {
   UnenrolCourseRequest,
   CourseBatchStatus,
   CourseBatchesRequest,
-  CourseEnrollmentType
+  CourseEnrollmentType,
+  EnrolledCoursesRequest
 } from 'sunbird';
 import { ContentRatingAlertComponent, ContentActionsComponent } from '@app/component';
 import { CollectionDetailsPage } from '@app/pages/collection-details/collection-details';
@@ -241,6 +242,35 @@ export class EnrolledCourseDetailsPage {
   }
 
   updateEnrolledCourseList(unenrolledCourse) {
+    const enrolledCoursesRequest: EnrolledCoursesRequest = {
+      userId: this.appGlobalService.getUserId(),
+      refreshEnrolledCourses: false,
+      returnRefreshedEnrolledCourses: true
+    };
+    this.courseService.getEnrolledCourses(enrolledCoursesRequest)
+      .then((enrolledCourses: any) => {
+        if (enrolledCourses) {
+          enrolledCourses = JSON.parse(enrolledCourses);
+          this.zone.run(() => {
+            // this.enrolledCourses = enrolledCourses.result.courses ? enrolledCourses.result.courses : [];
+            // maintain the list of courses that are enrolled, and store them in appglobal
+            if (enrolledCourses.length > 0) {
+              const courseList: Array<any> = [];
+              for (const course of enrolledCourses) {
+                courseList.push(course);
+              }
+              this.appGlobalService.setEnrolledCourseList(courseList);
+            }
+            this.removeUnenrolledCourse(unenrolledCourse);
+          });
+        }
+      })
+      .catch((error: any) => {
+        this.removeUnenrolledCourse(unenrolledCourse);
+      });
+  }
+
+  private removeUnenrolledCourse(unenrolledCourse) {
     const enrolledCourses = this.appGlobalService.getEnrolledCourseList();
     const found = enrolledCourses.find((ele) => {
       return ele.courseId === unenrolledCourse.courseId;
@@ -292,9 +322,7 @@ export class EnrolledCourseDetailsPage {
         }, {
             cssClass: 'content-rating-alert'
           });
-        popUp.present({
-          ev: event
-        });
+        popUp.present();
         popUp.onDidDismiss(data => {
           if (data && data.message === 'rating.success') {
             this.userRating = data.rating;
@@ -357,8 +385,7 @@ export class EnrolledCourseDetailsPage {
         .then((data: any) => {
           this.zone.run(() => {
             this.commonUtilService.showToast(this.commonUtilService.translateMessage('COURSE_UNENROLLED'));
-            this.events.publish(EventTopics.UNENROL_COURSE_SUCCESS, {
-            });
+            this.events.publish(EventTopics.UNENROL_COURSE_SUCCESS, {});
             loader.dismiss();
           });
         })
@@ -367,8 +394,8 @@ export class EnrolledCourseDetailsPage {
             error = JSON.parse(error);
             if (error && error.error === 'CONNECTION_ERROR') {
               this.commonUtilService.showToast(this.commonUtilService.translateMessage('ERROR_NO_INTERNET_MESSAGE'));
-            } else if (error && error.error === 'USER_ALREADY_ENROLLED_COURSE') {
-              this.commonUtilService.showToast(this.commonUtilService.translateMessage('ALREADY_ENROLLED_COURSE'));
+            } else {
+              this.events.publish(EventTopics.UNENROL_COURSE_SUCCESS, {});
             }
             loader.dismiss();
           });
@@ -488,6 +515,8 @@ export class EnrolledCourseDetailsPage {
           data = JSON.parse(data);
           if (data.result) {
             this.batchDetails = data.result;
+            this.saveContentContext(this.appGlobalService.getUserId(),
+              this.batchDetails.courseId, this.courseCardData.batchId, this.batchDetails.status);
             this.preference.getString(PreferenceKey.COURSE_IDENTIFIER)
               .then(val => {
                 if (val === this.batchDetails.identifier) {
@@ -530,6 +559,20 @@ export class EnrolledCourseDetailsPage {
       .catch((error: any) => {
         console.error('error while loading content details', error);
       });
+  }
+
+  saveContentContext(userId, courseId, batchId, batchStatus) {
+    const contentContextMap = new Map();
+    // store content context in the below map
+    contentContextMap['userId'] = userId;
+    contentContextMap['courseId'] = courseId;
+    contentContextMap['batchId'] = batchId;
+    if (batchStatus) {
+      contentContextMap['batchStatus'] = batchStatus;
+    }
+
+    // store the contentContextMap in shared preference and access it from SDK
+    this.preference.putString(PreferenceKey.CONTENT_CONTEXT, JSON.stringify(contentContextMap));
   }
 
   getBatchCreatorName() {
@@ -955,6 +998,7 @@ export class EnrolledCourseDetailsPage {
   ionViewWillLeave(): void {
     this.isNavigatingWithinCourse = true;
     this.events.unsubscribe('genie.event');
+    // TODO: this.events.unsubscribe(EventTopics.UNENROL_COURSE_SUCCESS);
   }
 
   /**
@@ -969,6 +1013,14 @@ export class EnrolledCourseDetailsPage {
       enrollmentType: CourseEnrollmentType.OPEN,
       status: [CourseBatchStatus.NOT_STARTED, CourseBatchStatus.IN_PROGRESS]
     };
+    const reqvalues = new Map();
+    reqvalues['enrollReq'] = courseBatchesRequest;
+    this.telemetryGeneratorService.generateInteractTelemetry(InteractType.TOUCH,
+      InteractSubtype.ENROLL_CLICKED,
+        Environment.HOME,
+        PageId.CONTENT_DETAIL, undefined,
+        reqvalues);
+
     if (this.commonUtilService.networkInfo.isNetworkAvailable) {
       if (!this.guestUser) {
         loader.present();

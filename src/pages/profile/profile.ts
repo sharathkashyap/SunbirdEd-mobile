@@ -73,7 +73,7 @@ export class ProfilePage {
   isLoggedInUser = false;
   isRefreshProfile = false;
   loggedInUserId = '';
-
+  refresh: boolean;
   profileName: string;
   onProfile = true;
   trainingsCompleted = [];
@@ -166,15 +166,18 @@ export class ProfilePage {
   public doRefresh(refresher?) {
     const loader = this.getLoader();
     this.isRefreshProfile = true;
+    if (!refresher) {
     loader.present();
+    } else {
+       refresher.complete();
+       this.refresh = true;
+    }
     return this.refreshProfileData()
       .then(() => {
         return new Promise((resolve) => {
           setTimeout(() => {
-            if (refresher) {
-              refresher.complete();
-            }
             this.events.publish('refresh:profile');
+            this.refresh = false;
             loader.dismiss();
             resolve();
           }, 500);
@@ -186,6 +189,7 @@ export class ProfilePage {
       })
       .catch(error => {
         console.error('Error while Fetching Data', error);
+        this.refresh = false;
         loader.dismiss();
       });
   }
@@ -441,7 +445,7 @@ export class ProfilePage {
         res = JSON.parse(res);
         const enrolledCourses = res.result.courses;
         for (let i = 0, len = enrolledCourses.length; i < len; i++) {
-          if ((enrolledCourses[i].status === 2) || (enrolledCourses[i].leafNodesCount === enrolledCourses[i].progress)) {
+          if (enrolledCourses[i].status === 2) {
             this.trainingsCompleted.push(enrolledCourses[i]);
           }
         }
@@ -565,9 +569,12 @@ export class ProfilePage {
   }
 
   editMobileNumber(event) {
+    const newTitle = this.profile.phone ?
+                     this.commonUtilService.translateMessage('EDIT_PHONE_POPUP_TITLE') :
+                     this.commonUtilService.translateMessage('ENTER_PHONE_POPUP_TITLE');
     const popover = this.popoverCtrl.create(EditContactDetailsPopupComponent, {
       phone: this.profile.phone,
-      title: this.commonUtilService.translateMessage('EDIT_PHONE_POPUP_TITLE'),
+      title: newTitle,
       description: '',
       type: 'phone',
       userId: this.profile.userId
@@ -585,9 +592,12 @@ export class ProfilePage {
   }
 
   editEmail(event) {
+    const newTitle = this.profile.email ?
+                     this.commonUtilService.translateMessage('EDIT_EMAIL_POPUP_TITLE') :
+                     this.commonUtilService.translateMessage('EMAIL_PLACEHOLDER');
     const popover = this.popoverCtrl.create(EditContactDetailsPopupComponent, {
       email: this.profile.email,
-      title: this.commonUtilService.translateMessage('EDIT_EMAIL_POPUP_TITLE'),
+      title: newTitle,
       description: '',
       type: 'email',
       userId: this.profile.userId
