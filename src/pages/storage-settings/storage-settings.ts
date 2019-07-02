@@ -95,13 +95,8 @@ export class StorageSettingsPage implements OnInit, StorageSettingsInterface {
   ) {
     this.spaceTakenBySunbird$ = this.storageService.getStorageDestinationVolumeInfo()
       .mergeMap((storageVolume) => {
-        if (storageVolume.storageDestination === StorageDestination.INTERNAL_STORAGE) {
-          this.contentService
-            .getContentSpaceUsageSummary({ paths: [cordova.file.externalDataDirectory] });
-        }
-
         return this.contentService
-          .getContentSpaceUsageSummary({ paths: [storageVolume.info.path] });
+          .getContentSpaceUsageSummary({ paths: [storageVolume.info.contentStoragePath] });
       })
       .map((summary) => summary[0].sizeOnDevice) as any;
     this.appVersion.getAppName()
@@ -120,7 +115,7 @@ export class StorageSettingsPage implements OnInit, StorageSettingsInterface {
     if (this.storageDestination === await this.storageService.getStorageDestination().toPromise()) {
       return;
     }
-    
+
     const permissionStatus = await this.getStoragePermissionStatus();
 
     if (permissionStatus.hasPermission) {
@@ -168,17 +163,10 @@ export class StorageSettingsPage implements OnInit, StorageSettingsInterface {
     this.storageDestination = await this.storageService.getStorageDestination().toPromise();
   }
 
-  private getStorageDestinationVolume(storageDestination: StorageDestination): string {
-    if (storageDestination === StorageDestination.INTERNAL_STORAGE) {
-      return cordova.file.externalDataDirectory;
-    }
-
-    const storageVolumePath = this._storageVolumes
-      .find((storageVolume) => storageVolume.storageDestination === storageDestination)!
-      .info.path;
-
-    // TODO change prefix
-    return `${storageVolumePath}`;
+  private getStorageDestinationDirectoryPath(storageDestination: StorageDestination): string {
+    return this._storageVolumes
+      .find((storageVolume) => storageVolume.storageDestination === storageDestination)
+      .info.contentStoragePath;
   }
 
   private async getStoragePermissionStatus(): Promise<AndroidPermissionsStatus> {
@@ -342,7 +330,7 @@ export class StorageSettingsPage implements OnInit, StorageSettingsInterface {
     this.storageService.transferContents({
       contentIds: [],
       existingContentAction: undefined,
-      destinationFolder: this.getStorageDestinationVolume(this.storageDestination),
+      destinationFolder: this.getStorageDestinationDirectoryPath(this.storageDestination),
       deleteDestination: false
     }).subscribe(null, (e) => { console.error(e); }, () => { console.log('complete'); });
 
@@ -351,10 +339,19 @@ export class StorageSettingsPage implements OnInit, StorageSettingsInterface {
     const transferCompleteSubscription = this.eventsBusService
       .events(EventNamespace.STORAGE)
       .takeWhile(e => e.type !== StorageEventType.TRANSFER_COMPLETED)
-      .filter(e => e.type === StorageEventType.TRANSFER_FAILED_DUPLICATE_CONTENT)
+      .filter(e => e.type === StorageEventType.TRANSFER_FAILED_DUPLICATE_CONTENT ||
+        e.type === StorageEventType.TRANSFER_FAILED_LOW_MEMORY)
       .take(1)
-      .subscribe(async () => {
-        this.showDuplicateContentPopup();
+      .subscribe(async (e) => {
+        if (e.type === StorageEventType.TRANSFER_FAILED_DUPLICATE_CONTENT) {
+          this.showDuplicateContentPopup();
+        } else if (e.type === StorageEventType.TRANSFER_FAILED_LOW_MEMORY) {
+          if (this.transferringContentsPopup) {
+            this.transferringContentsPopup.dismiss();
+          }
+          this.showLowMemoryToast();
+          this.revertSelectedStorageDestination();
+        }
       });
 
     const transferProgress$ = this.eventsBusService
@@ -442,6 +439,16 @@ export class StorageSettingsPage implements OnInit, StorageSettingsInterface {
     });
 
     return;
+  }
+
+  private async showLowMemoryToast() {
+    const toast = await this.toastController.create({
+      message: this.commonUtilService.translateMessage('ERROR_LOW_MEMORY'),
+      duration: 2000,
+      position: 'bottom',
+      closeButtonText: ''
+    });
+    toast.present();
   }
 
   private async showCancellingTransferPopup(prevPopup: Popover, storageDestination): Promise<undefined> {

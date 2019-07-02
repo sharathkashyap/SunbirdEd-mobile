@@ -1,27 +1,20 @@
 import { ActiveDownloadsPage } from './../active-downloads/active-downloads';
-import { Component, NgZone, OnInit, AfterViewInit, Inject} from '@angular/core';
+import { Component, NgZone, OnInit, AfterViewInit, Inject } from '@angular/core';
 import {
-  App,
-  Events,
-  LoadingController,
-  NavController,
-  NavParams,
-  PopoverController,
-  ViewController
+  App, Events, LoadingController, NavController, NavParams, PopoverController, ViewController
 } from 'ionic-angular';
-import {OverflowMenuComponent} from '@app/pages/profile';
-import {generateInteractTelemetry} from '@app/app/telemetryutil';
-import {ContentCard, ContentType, MenuOverflow, MimeType, ProfileConstants} from '@app/app/app.constant';
-import {CategoriesEditPage} from '@app/pages/categories-edit/categories-edit';
-import {PersonalDetailsEditPage} from '@app/pages/profile/personal-details-edit.profile/personal-details-edit.profile';
-import {EnrolledCourseDetailsPage} from '@app/pages/enrolled-course-details/enrolled-course-details';
-import {CollectionDetailsPage} from '@app/pages/collection-details/collection-details';
-import {CollectionDetailsEtbPage} from '@app/pages/collection-details-etb/collection-details-etb';
-import {ContentDetailsPage} from '@app/pages/content-details/content-details';
-import {AppGlobalService, CommonUtilService, TelemetryGeneratorService, AppHeaderService} from '@app/service';
-import {FormAndFrameworkUtilService} from './formandframeworkutil.service';
-import {EditContactDetailsPopupComponent} from '@app/component/edit-contact-details-popup/edit-contact-details-popup';
-import {EditContactVerifyPopupComponent} from '@app/component';
+import { OverflowMenuComponent } from '@app/pages/profile';
+import { generateInteractTelemetry } from '@app/app/telemetryutil';
+import { ContentCard, ContentType, MenuOverflow, MimeType, ProfileConstants, ContentFilterConfig } from '@app/app/app.constant';
+import { CategoriesEditPage } from '@app/pages/categories-edit/categories-edit';
+import { PersonalDetailsEditPage } from '@app/pages/profile/personal-details-edit.profile/personal-details-edit.profile';
+import { EnrolledCourseDetailsPage } from '@app/pages/enrolled-course-details/enrolled-course-details';
+import { CollectionDetailsEtbPage } from '@app/pages/collection-details-etb/collection-details-etb';
+import { ContentDetailsPage } from '@app/pages/content-details/content-details';
+import { AppGlobalService, CommonUtilService, TelemetryGeneratorService, AppHeaderService } from '@app/service';
+import { FormAndFrameworkUtilService } from './formandframeworkutil.service';
+import { EditContactDetailsPopupComponent } from '@app/component/edit-contact-details-popup/edit-contact-details-popup';
+import { EditContactVerifyPopupComponent } from '@app/component';
 import {
   AuthService,
   ContentSearchCriteria,
@@ -39,7 +32,7 @@ import {
   UpdateServerProfileInfoRequest,
   CachedItemRequestSourceFrom
 } from 'sunbird-sdk';
-import {Environment, ImpressionType, InteractSubtype, InteractType, PageId} from '../../service/telemetry-constants';
+import { Environment, InteractSubtype, InteractType, PageId } from '../../service/telemetry-constants';
 
 /**
  * The Profile page
@@ -85,7 +78,7 @@ export class ProfilePage implements OnInit, AfterViewInit {
   startLimit = 0;
   custodianOrgId: string;
   isCustodianOrgId: boolean;
-
+  organisationDetails = '';
   contentCreatedByMe: any = [];
   orgDetails: {
     'state': '',
@@ -142,6 +135,7 @@ export class ProfilePage implements OnInit, AfterViewInit {
 	 * Angular life cycle hooks
 	 */
   ngOnInit() {
+
   }
 
   ionViewWillEnter() {
@@ -228,7 +222,7 @@ export class ProfilePage implements OnInit, AfterViewInit {
           const serverProfileDetailsRequest: ServerProfileDetailsRequest = {
             userId: that.userId && that.userId !== session.userToken ? that.userId : session.userToken,
             requiredFields: ProfileConstants.REQUIRED_FIELDS,
-            from : CachedItemRequestSourceFrom.SERVER,
+            from: CachedItemRequestSourceFrom.SERVER,
           };
 
           if (that.isLoggedInUser) {
@@ -239,28 +233,29 @@ export class ProfilePage implements OnInit, AfterViewInit {
               that.zone.run(() => {
                 that.resetProfile();
                 that.profile = profileData;
-                that.profileService.getActiveSessionProfile({requiredFields: ProfileConstants.REQUIRED_FIELDS}).toPromise()
+                that.profileService.getActiveSessionProfile({ requiredFields: ProfileConstants.REQUIRED_FIELDS }).toPromise()
                   .then((activeProfile) => {
                     that.formAndFrameworkUtilService.updateLoggedInUser(profileData, activeProfile)
-                    .then((frameWorkData) => {
-                      if (!frameWorkData['status']) {
-                        that.app.getRootNav().setRoot(CategoriesEditPage, {
-                          showOnlyMandatoryFields: true,
-                          profile: frameWorkData['activeProfileData']
-                        });
-                      }
-                    });
+                      .then((frameWorkData) => {
+                        if (!frameWorkData['status']) {
+                          that.app.getRootNav().setRoot(CategoriesEditPage, {
+                            showOnlyMandatoryFields: true,
+                            profile: frameWorkData['activeProfileData']
+                          });
+                        }
+                      });
                     if (profileData && profileData.avatar) {
                       that.imageUri = profileData.avatar;
                     }
                     that.formatRoles();
                     that.formatOrgDetails();
+                    that.getOrgDetails();
                     that.formatUserLocation();
                     that.isCustodianOrgId = (that.profile.rootOrg.rootOrgId === this.custodianOrgId);
                     resolve();
                   });
               });
-            }).catch( err => {
+            }).catch(err => {
               if (refresher) {
                 refresher.complete();
               }
@@ -317,7 +312,7 @@ export class ProfilePage implements OnInit, AfterViewInit {
    * Method to handle organisation details.
    */
   formatOrgDetails() {
-    this.orgDetails = {'state': '', 'district': '', 'block': ''};
+    this.orgDetails = { 'state': '', 'district': '', 'block': '' };
     for (let i = 0, len = this.profile.organisations.length; i < len; i++) {
       if (this.profile.organisations[i].locations) {
         for (let j = 0, l = this.profile.organisations[i].locations.length; j < l; j++) {
@@ -350,8 +345,8 @@ export class ProfilePage implements OnInit, AfterViewInit {
       list: MenuOverflow.MENU_LOGIN,
       profile: this.profile
     }, {
-      cssClass: 'box'
-    });
+        cssClass: 'box'
+      });
     popover.present({
       ev: event
     });
@@ -420,7 +415,7 @@ export class ProfilePage implements OnInit, AfterViewInit {
    * @returns {object}
    */
   getSubset(keys, obj) {
-    return keys.reduce((a, c) => ({...a, [c]: obj[c]}), {});
+    return keys.reduce((a, c) => ({ ...a, [c]: obj[c] }), {});
   }
 
   /**
@@ -437,7 +432,7 @@ export class ProfilePage implements OnInit, AfterViewInit {
     this.trainingsCompleted = [];
     this.courseService.getEnrolledCourses(option).toPromise()
       .then((res: Course[]) => {
-       // res = JSON.parse(res);
+        // res = JSON.parse(res);
         const enrolledCourses = res;
         console.log('course is ', res);
         for (let i = 0, len = enrolledCourses.length; i < len; i++) {
@@ -490,7 +485,7 @@ export class ProfilePage implements OnInit, AfterViewInit {
       });
     } else if (content.mimeType === MimeType.COLLECTION) {
       // this.navCtrl.push(CollectionDetailsPage, {
-        this.navCtrl.push(CollectionDetailsEtbPage, {
+      this.navCtrl.push(CollectionDetailsEtbPage, {
         content: content
       });
     } else {
@@ -502,7 +497,7 @@ export class ProfilePage implements OnInit, AfterViewInit {
 
   updateLocalProfile(framework) {
     this.profile.framework = framework;
-    this.profileService.getActiveSessionProfile({requiredFields: ProfileConstants.REQUIRED_FIELDS})
+    this.profileService.getActiveSessionProfile({ requiredFields: ProfileConstants.REQUIRED_FIELDS })
       .toPromise()
       .then((resp: any) => {
         this.formAndFrameworkUtilService.updateLoggedInUser(this.profile, resp)
@@ -545,15 +540,18 @@ export class ProfilePage implements OnInit, AfterViewInit {
   /**
    * Searches contents created by the user
    */
-  searchContent(): void {
+  async searchContent() {
     const contentSortCriteria: ContentSortCriteria = {
       sortAttribute: 'lastUpdatedOn',
       sortOrder: SortOrder.DESC
     };
+
+    const contentTypes = await this.formAndFrameworkUtilService.getSupportedContentFilterConfig(
+      ContentFilterConfig.NAME_DOWNLOADS);
     const contentSearchCriteria: ContentSearchCriteria = {
       createdBy: [this.userId || this.loggedInUserId],
       limit: 100,
-      contentTypes: ContentType.FOR_PROFILE_TAB,
+      contentTypes: contentTypes,
       sortCriteria: [contentSortCriteria],
       searchType: SearchType.SEARCH
     };
@@ -578,8 +576,8 @@ export class ProfilePage implements OnInit, AfterViewInit {
       type: 'phone',
       userId: this.profile.userId
     }, {
-      cssClass: 'popover-alert'
-    });
+        cssClass: 'popover-alert'
+      });
     popover.present({
       ev: event
     });
@@ -598,10 +596,11 @@ export class ProfilePage implements OnInit, AfterViewInit {
       email: this.profile.email,
       title: newTitle,
       description: '',
-      type: 'email'
+      type: 'email',
+      userId: this.profile.userId
     }, {
-      cssClass: 'popover-alert'
-    });
+        cssClass: 'popover-alert'
+      });
     popover.present({
       ev: event
     });
@@ -621,8 +620,8 @@ export class ProfilePage implements OnInit, AfterViewInit {
         description: this.commonUtilService.translateMessage('VERIFY_PHONE_OTP_DESCRIPTION'),
         type: ProfileConstants.CONTACT_TYPE_PHONE
       }, {
-        cssClass: 'popover-alert'
-      });
+          cssClass: 'popover-alert'
+        });
       popover.present({
         ev: event
       });
@@ -640,8 +639,8 @@ export class ProfilePage implements OnInit, AfterViewInit {
         description: this.commonUtilService.translateMessage('VERIFY_EMAIL_OTP_DESCRIPTION'),
         type: ProfileConstants.CONTACT_TYPE_EMAIL
       }, {
-        cssClass: 'popover-alert'
-      });
+          cssClass: 'popover-alert'
+        });
       popover.present({
         ev: event
       });
@@ -667,9 +666,9 @@ export class ProfilePage implements OnInit, AfterViewInit {
         this.doRefresh();
         this.commonUtilService.showToast(this.commonUtilService.translateMessage('PHONE_UPDATE_SUCCESS'));
       }).catch((e) => {
-      loader.dismiss();
-      this.commonUtilService.showToast(this.commonUtilService.translateMessage('SOMETHING_WENT_WRONG'));
-    });
+        loader.dismiss();
+        this.commonUtilService.showToast(this.commonUtilService.translateMessage('SOMETHING_WENT_WRONG'));
+      });
   }
 
   updateEmailInfo(email) {
@@ -685,9 +684,9 @@ export class ProfilePage implements OnInit, AfterViewInit {
         this.doRefresh();
         this.commonUtilService.showToast(this.commonUtilService.translateMessage('EMAIL_UPDATE_SUCCESS'));
       }).catch((e) => {
-      loader.dismiss();
-      this.commonUtilService.showToast(this.commonUtilService.translateMessage('SOMETHING_WENT_WRONG'));
-    });
+        loader.dismiss();
+        this.commonUtilService.showToast(this.commonUtilService.translateMessage('SOMETHING_WENT_WRONG'));
+      });
   }
 
   handleHeaderEvents($event) {
@@ -728,11 +727,27 @@ export class ProfilePage implements OnInit, AfterViewInit {
     event.stopPropagation();
   }
   dismissMessage() {
-  this.timer = setTimeout(() => {
-    this.informationProfileName = false;
-    this.informationOrgName = false;
-  }, 3000);
+    this.timer = setTimeout(() => {
+      this.informationProfileName = false;
+      this.informationOrgName = false;
+    }, 3000);
   }
 
+  getOrgDetails() {
+    let orgList = [];
+    let orgItemList;
+    orgItemList = this.profile.organisations;
+    if (orgItemList.length > 1) {
+      orgItemList.map((org) => {
+        if (this.profile.rootOrgId !== org.organisationId) {
+          orgList.push(org);
+        }
+      });
+      orgList = orgList.sort((orgDate1, orgdate2) => orgDate1.orgjoindate > orgdate2.organisation ? 1 : -1);
+      this.organisationDetails = orgList[0].orgName;
+    } else {
+      this.organisationDetails = orgItemList[0].orgName;
+    }
+  }
 }
 

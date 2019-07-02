@@ -33,6 +33,7 @@ import { ComingSoonMessageService } from '@app/service/coming-soon-message.servi
 import { NotificationService } from '@app/service/notification.service';
 import { CrashAnalyticsErrorLogger } from '@app/service/crash-analytics/crash-analytics-error-logger';
 import { ActivePageService } from '@app/service/active-page/active-page-service';
+import { FormAndFrameworkUtilService } from '@app/pages/profile/formandframeworkutil.service';
 
 export const translateHttpLoaderFactory = (httpClient: HttpClient) => {
   return new TranslateHttpLoader(httpClient, './assets/i18n/', '.json');
@@ -223,7 +224,7 @@ export const sunbirdSdkFactory =
             producerUniqueId: 'sunbird.app'
           },
           cached_requests: {
-            timeToLive: 30 * 60 * 60 * 1000
+            timeToLive: 2 * 60 * 60 * 1000
           }
         },
         eventsBusConfig: {
@@ -292,6 +293,9 @@ export const sunbirdSdkFactory =
             enableUserSwitcher: false,
             showUser: false
           }
+        },
+        errorLoggerConfig: {
+          errorLoggerApiPath: '/api/data/v1/client/logs'
         }
       });
 
@@ -360,6 +364,7 @@ export const sunbirdSdkFactory =
     ComingSoonMessageService,
     NotificationService,
     ActivePageService,
+    FormAndFrameworkUtilService,
     ...sunbirdSdkServicesProvidersFactory(),
     { provide: ErrorHandler, useClass: IonicErrorHandler },
     { provide: ErrorHandler, useClass: CrashAnalyticsErrorLogger },

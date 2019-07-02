@@ -15,7 +15,8 @@ import {
   DownloadService,
   EventsBusService,
   NotificationService,
-  PlayerService
+  PlayerService,
+  StorageService
 } from 'sunbird-sdk';
 import { CanvasPlayerService } from '../pages/player/canvas-player.service';
 import {
@@ -467,6 +468,7 @@ export const appRatingServiceMock = createSpyObj<AppRatingService>([
   'checkInitialDate',
   'setEndStoreRate',
   'createFolder',
+  'checkReadFile'
 ]);
 export const downloadServiceMock = createSpyObj<DownloadService>([
   'getActiveDownloadRequests',
@@ -542,4 +544,7 @@ export const menuControllerMock = createSpyObj<MenuController>([
 
 export const changeDetectionRefMock = createSpyObj<ChangeDetectorRef>([
   'detectChanges'
+]);
+
+export const storageServiceMock = createSpyObj<StorageService>([
 ]);
