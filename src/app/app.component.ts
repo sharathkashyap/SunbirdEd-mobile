@@ -156,20 +156,20 @@ export class MyApp implements OnInit, AfterViewInit {
       case SyncStatus.DOWNLOADING_PACKAGE:
         const value = new Map();
         value['codepushUpdate'] = 'downloading-package';
-        /*this.telemetryGeneratorService.generateInteractTelemetry(InteractType.OTHER,InteractSubtype.HOTCODE_PUSH_PROGRESS,
-          Environment.HOME,PageId.HOME,null,value);*/
+        window['thisRef'].telemetryGeneratorService.generateInteractTelemetry(InteractType.OTHER,InteractSubtype.HOTCODE_PUSH_PROGRESS,
+          Environment.HOME,PageId.HOME,null,value);
         break;
       case SyncStatus.INSTALLING_UPDATE:
         const value1 = new Map();
         value1['codepushUpdate'] = 'installing-update';
-        /*this.telemetryGeneratorService.generateInteractTelemetry(InteractType.OTHER,InteractSubtype.HOTCODE_PUSH_PROGRESS,
-          Environment.HOME,PageId.HOME,null,value1);*/
+        window['thisRef'].telemetryGeneratorService.generateInteractTelemetry(InteractType.OTHER,InteractSubtype.HOTCODE_PUSH_PROGRESS,
+          Environment.HOME,PageId.HOME,null,value1);
         break;
       case SyncStatus.ERROR:
         const value2 = new Map();
         value2['codepushUpdate'] = 'error-in-update';
-      /* this.telemetryGeneratorService.generateInteractTelemetry(InteractType.OTHER,InteractSubtype.HOTCODE_PUSH_FAILURE,
-         Environment.HOME,PageId.HOME,null,value2);*/
+        window['thisRef'].telemetryGeneratorService.generateInteractTelemetry(InteractType.OTHER,InteractSubtype.HOTCODE_PUSH_FAILURE,
+         Environment.HOME,PageId.HOME,null,value2);
     }
   }
 
